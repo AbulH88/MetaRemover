@@ -23,7 +23,7 @@ foreach ($component in @('src','tests','scripts','docs')) {
     Get-ChildItem -LiteralPath (Join-Path $root $component) -Recurse -File |
         Where-Object { $_.FullName -notmatch '[\\/](bin|obj|superpowers)[\\/]|[\\/]progress\.md$' } |
         ForEach-Object {
-            $relative = [IO.Path]::GetRelativePath($root, $_.FullName)
+            $relative = $_.FullName.Substring($root.Length + 1)
             $destination = Join-Path $sourceStage $relative
             New-Item -ItemType Directory -Path (Split-Path $destination -Parent) -Force | Out-Null
             Copy-Item -LiteralPath $_.FullName -Destination $destination
