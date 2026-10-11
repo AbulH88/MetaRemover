@@ -1,0 +1,225 @@
+<Window x:Class="MetaRemover.App.MainWindow"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ Title="MetaRemover" Width="1536" Height="1024" MinWidth="1100" MinHeight="800"
+ Background="#FFFFFF" Foreground="#183550" FontFamily="Segoe UI" WindowStartupLocation="CenterScreen"
+ AllowDrop="True" Drop="Window_Drop" DragOver="Window_DragOver">
+ <Grid Background="White">
+  <Grid.RowDefinitions>
+   <RowDefinition Height="76"/><RowDefinition Height="53"/><RowDefinition Height="*" MinHeight="100"/>
+   <RowDefinition Height="8"/><RowDefinition Height="390" MinHeight="230"/><RowDefinition Height="82"/><RowDefinition Height="23"/>
+  </Grid.RowDefinitions>
+  <Border Background="#F7FAFD" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="22,6">
+   <Grid>
+    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+     <Border Width="46" Height="46" CornerRadius="10" Background="#123C60" Margin="0,0,16,0">
+      <Border BorderBrush="#61D0E1" BorderThickness="2" CornerRadius="4" Margin="8"><TextBlock Text="M" Foreground="#74D8E8" FontSize="23" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+     </Border>
+     <StackPanel><TextBlock Text="MetaRemover" FontSize="28" FontWeight="Bold" Foreground="{StaticResource Navy}"/>
+      <TextBlock Text="Remove or replace metadata in your photos and videos" Foreground="#607B98" FontSize="16" Margin="0,2,0,0"/>
+     </StackPanel>
+    </StackPanel>
+    <TextBlock Text="Clean files. Your story. Your control." HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource Hint}"/>
+   </Grid>
+  </Border>
+  <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="22,7,22,7" IsEnabled="{Binding IsIdle}">
+   <Button Style="{StaticResource Primary}" Click="AddFiles_Click" Margin="0,0,15,0"><StackPanel Orientation="Horizontal"><TextBlock Text="＋" Foreground="White" FontSize="20" Margin="0,-4,9,-4"/><TextBlock Text="Add files" Foreground="White"/></StackPanel></Button>
+   <Button Click="AddFolder_Click" Margin="0,0,15,0"><StackPanel Orientation="Horizontal"><Path Data="M1,4 L7,4 10,7 21,7 21,19 1,19 Z" Width="22" Height="20" Stretch="Uniform" Stroke="#183550" StrokeThickness="1.5" Margin="0,0,10,0"/><TextBlock Text="Add folder"/></StackPanel></Button>
+   <Button Click="Remove_Click" Margin="0,0,15,0"><StackPanel Orientation="Horizontal"><TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE74D;" Margin="0,0,9,0"/><TextBlock Text="Remove selected"/></StackPanel></Button>
+   <Border Background="{StaticResource Line}" Width="1" Margin="0,7,16,7"/>
+   <Button Click="SelectAll_Click" Margin="0,0,13,0" Content="☑   Select all"/>
+   <Button Click="SelectNone_Click" Margin="0,0,22,0" Content="□   Select none"/>
+   <TextBlock Text="{Binding SelectionSummary}" FontSize="13" VerticalAlignment="Center" Margin="0,0,20,0"/>
+   <CheckBox x:Name="IncludeSubfolders" Content="Subfolders" VerticalAlignment="Center" ToolTip="Include subfolders when adding or dropping a folder"/>
+  </StackPanel>
+  <Border Grid.Row="2" Margin="22,0,22,14" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="4">
+   <Grid>
+    <DataGrid x:Name="FileGrid" ItemsSource="{Binding Files}" AutoGenerateColumns="False" IsReadOnly="True"
+     CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False" HeadersVisibility="Column"
+     GridLinesVisibility="None" BorderThickness="0" Background="White" RowBackground="White" AlternatingRowBackground="#F6F9FC"
+     SelectionMode="Single" SelectionUnit="FullRow" SelectionChanged="FileGrid_SelectionChanged"
+     EnableRowVirtualization="True" EnableColumnVirtualization="True" IsEnabled="{Binding IsIdle}">
+     <DataGrid.Columns>
+      <DataGridTemplateColumn Width="49">
+       <DataGridTemplateColumn.Header><CheckBox x:Name="HeaderCheck" ToolTip="Select or clear all" Click="HeaderSelect_Click"/></DataGridTemplateColumn.Header>
+       <DataGridTemplateColumn.CellTemplate><DataTemplate><CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/></DataTemplate></DataGridTemplateColumn.CellTemplate>
+      </DataGridTemplateColumn>
+      <DataGridTemplateColumn Header="File" Width="*">
+       <DataGridTemplateColumn.CellTemplate><DataTemplate>
+        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="95"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+         <Border Width="82" Height="46" CornerRadius="3" Background="#DCE8EF" HorizontalAlignment="Left" ClipToBounds="True">
+          <Grid><TextBlock Text="{Binding Type}" Foreground="#67829A" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="SemiBold"/>
+           <Image Source="{Binding ThumbnailPath, Converter={StaticResource Thumbnail}}" Stretch="UniformToFill"/>
+           <Border Background="#A0122A40" CornerRadius="2" Padding="3,1" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="3"
+            Visibility="{Binding IsVideo, Converter={StaticResource BoolVisibility}}">
+            <TextBlock Text="{Binding Duration}" Foreground="White" FontSize="10"/>
+           </Border>
+          </Grid>
+         </Border>
+         <StackPanel Grid.Column="1" VerticalAlignment="Center">
+          <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+          <TextBlock Text="{Binding SourcePath}" Style="{StaticResource Hint}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Margin="0,4,0,0"/>
+         </StackPanel>
+        </Grid>
+       </DataTemplate></DataGridTemplateColumn.CellTemplate>
+      </DataGridTemplateColumn>
+      <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="110"/>
+      <DataGridTextColumn Header="Size" Binding="{Binding Size}" Width="130"/>
+      <DataGridTextColumn Header="Preset" Binding="{Binding Preset}" Width="220"/>
+      <DataGridTemplateColumn Header="Status" Width="180">
+       <DataGridTemplateColumn.CellTemplate><DataTemplate>
+        <StackPanel Orientation="Horizontal"><TextBlock x:Name="Dot" Text="●" FontSize="17" Foreground="#009C86" Margin="0,0,12,0"/><TextBlock x:Name="Status" Text="{Binding Status}" Foreground="#258773" VerticalAlignment="Center"/></StackPanel>
+        <DataTemplate.Triggers>
+         <DataTrigger Binding="{Binding Status}" Value="Failed"><Setter TargetName="Dot" Property="Foreground" Value="#D44B48"/><Setter TargetName="Status" Property="Foreground" Value="#B73837"/></DataTrigger>
+         <DataTrigger Binding="{Binding Status}" Value="Review"><Setter TargetName="Dot" Property="Foreground" Value="#C48A25"/><Setter TargetName="Status" Property="Foreground" Value="#A7751B"/></DataTrigger>
+         <DataTrigger Binding="{Binding Status}" Value="Processing"><Setter TargetName="Dot" Property="Foreground" Value="#008AA5"/></DataTrigger>
+        </DataTemplate.Triggers>
+       </DataTemplate></DataGridTemplateColumn.CellTemplate>
+      </DataGridTemplateColumn>
+     </DataGrid.Columns>
+    </DataGrid>
+    <StackPanel x:Name="EmptyState" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+     <Path Data="M1,4 L7,4 10,7 21,7 21,19 1,19 Z" Width="44" Height="38" Stretch="Uniform" Stroke="#93ABB9" StrokeThickness="1" HorizontalAlignment="Center" Margin="0,0,0,14"/>
+     <TextBlock Text="Drop images and videos here" FontSize="20" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+     <TextBlock Text="Or use Add files / Add folder to import a batch" Style="{StaticResource Hint}" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+     <TextBlock Text="JPG · PNG · WebP · MP4 · MOV" Style="{StaticResource Hint}" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+    </StackPanel>
+   </Grid>
+  </Border>
+  <GridSplitter Grid.Row="3" Height="8" HorizontalAlignment="Stretch" VerticalAlignment="Center" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext" Background="#E4EDF4" Cursor="SizeNS" ToolTip="Drag up or down to resize settings and metadata preview"/>
+  <Grid Grid.Row="4" Margin="22,0,22,14">
+   <Grid.ColumnDefinitions><ColumnDefinition Width="*" MinWidth="530"/><ColumnDefinition Width="14"/><ColumnDefinition Width="*" MinWidth="400"/></Grid.ColumnDefinitions>
+   <GridSplitter Grid.Column="1" Width="6" HorizontalAlignment="Center" VerticalAlignment="Stretch" ResizeDirection="Columns" ResizeBehavior="PreviousAndNext" Background="#E4EDF4" ToolTip="Drag left or right to resize the panels"/>
+   <Border BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="5">
+    <DockPanel>
+     <Border DockPanel.Dock="Top" Style="{StaticResource PanelHeading}"><StackPanel Orientation="Horizontal"><TextBlock Text="⚙" FontFamily="Segoe UI Symbol" FontSize="19" Margin="0,0,12,0"/><TextBlock Text="Batch Settings" FontSize="18" FontWeight="SemiBold"/></StackPanel></Border>
+     <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <Grid Margin="17,13" IsEnabled="{Binding IsIdle}">
+       <Grid.ColumnDefinitions><ColumnDefinition Width="190"/><ColumnDefinition Width="1"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+       <StackPanel Margin="0,0,16,0">
+        <TextBlock Text="Mode" Style="{StaticResource Label}"/>
+        <RadioButton x:Name="RemoveMode" Content="Remove metadata" GroupName="Mode" Checked="Settings_Changed"/>
+        <RadioButton x:Name="ReplaceMode" Content="Replace metadata" GroupName="Mode" IsChecked="True" Checked="Settings_Changed"/>
+        <TextBlock Text="Remove descriptive metadata or write a custom iPhone preset." Style="{StaticResource Hint}" Margin="0,1,0,12"/>
+        <CheckBox x:Name="IphoneNames" Content="iPhone-style filenames" IsChecked="True" Checked="Settings_Changed" Unchecked="Settings_Changed" Margin="0,0,0,6"/>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8"><TextBlock Text="Start" Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="0,0,10,0"/><TextBox x:Name="StartNumber" Text="0001" Width="75" MaxLength="4" ToolTip="First filename number: 0001 to 9999" TextChanged="Settings_Changed"/></StackPanel>
+        <TextBlock x:Name="FilenamePreview" Text="IMG_0001.JPG" FontFamily="Consolas" FontSize="12" Foreground="#008AA5"/>
+       </StackPanel>
+       <Border Grid.Column="1" Background="{StaticResource Line}" Margin="0,0,0,10"/>
+       <StackPanel Grid.Column="2" Margin="23,0,0,0">
+        <TextBlock Text="Saved custom preset" Style="{StaticResource Label}"/>
+        <ComboBox x:Name="SavedPresetPicker" DisplayMemberPath="Name" SelectionChanged="SavedPreset_Changed" Margin="0,0,0,5" ToolTip="Select a saved preset to autofill all supported settings"/>
+        <TextBox x:Name="PresetName" MaxLength="80" ToolTip="Name for your custom preset" Margin="0,0,0,5"/>
+        <WrapPanel Margin="0,0,0,10"><Button Content="Save / Update" Click="SavePreset_Click" Padding="9,4" Margin="0,0,6,0"/><Button Content="Delete" Click="DeletePreset_Click" Padding="9,4"/></WrapPanel>
+        <TextBlock Text="Camera model" Style="{StaticResource Label}"/>
+        <ComboBox x:Name="ModelPicker" IsEditable="True" SelectionChanged="Settings_Changed" LostKeyboardFocus="Settings_Changed" Margin="0,0,0,5"/>
+        <TextBlock Text="Writes selected iPhone metadata values." Style="{StaticResource Hint}" Margin="0,0,0,10"/>
+        <TextBlock Text="Automatic daylight example profile — all values are editable." Foreground="#008AA5" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,8"/>
+        <TextBlock Text="Camera / lens" Style="{StaticResource Label}"/>
+        <ComboBox x:Name="CameraPicker" SelectionChanged="Camera_Changed" Margin="0,0,0,7"/>
+        <Button Content="Autofill all fields" Click="Autofill_Click" HorizontalAlignment="Left" Margin="0,0,0,8" ToolTip="Restore the editable daylight example profile for this phone and camera"/>
+        <TextBlock Text="Lens make / lens model (editable)" Style="{StaticResource Hint}"/>
+        <Grid Margin="0,4,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="85"/><ColumnDefinition Width="8"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+         <TextBox x:Name="LensMakeInput" TextChanged="Settings_Changed" ToolTip="Lens manufacturer"/>
+         <TextBox x:Name="LensModelInput" Grid.Column="2" TextChanged="Settings_Changed" ToolTip="Lens model or description"/>
+        </Grid>
+        <Grid Margin="0,0,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+         <StackPanel><TextBlock Text="Aperture (f-number)" Style="{StaticResource Hint}"/><TextBox x:Name="ApertureInput" TextChanged="Settings_Changed" Margin="0,4,0,0"/></StackPanel>
+         <StackPanel Grid.Column="2"><TextBlock Text="Focal length (35mm equiv.)" Style="{StaticResource Hint}"/><TextBox x:Name="EquivalentInput" TextChanged="Settings_Changed" Margin="0,4,0,0"/></StackPanel>
+        </Grid>
+        <TextBlock Text="iOS / software version (optional)" Style="{StaticResource Hint}"/>
+        <TextBox x:Name="SoftwareInput" TextChanged="Settings_Changed" Margin="0,4,0,9" ToolTip="For example 18.1; choose the version for your preset"/>
+        <Expander Header="Exposure and advanced lens fields (photos)" FontSize="12" Margin="0,0,0,10">
+         <StackPanel Margin="0,8,0,0">
+          <TextBlock Text="Physical focal length (mm, optional)" Style="{StaticResource Hint}"/><TextBox x:Name="PhysicalInput" TextChanged="Settings_Changed" Margin="0,4,0,8"/>
+          <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+           <StackPanel><TextBlock Text="ISO (optional)" Style="{StaticResource Hint}"/><TextBox x:Name="IsoInput" TextChanged="Settings_Changed" Margin="0,4,0,8"/></StackPanel>
+           <StackPanel Grid.Column="2"><TextBlock Text="Shutter (e.g. 1/320 or 0.01)" Style="{StaticResource Hint}"/><TextBox x:Name="ShutterInput" TextChanged="Settings_Changed" Margin="0,4,0,8"/></StackPanel>
+          </Grid>
+          <TextBlock Text="Exposure compensation (EV, optional)" Style="{StaticResource Hint}"/><TextBox x:Name="ExposureInput" TextChanged="Settings_Changed" Margin="0,4,0,8"/>
+          <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+           <StackPanel><TextBlock Text="Flash" Style="{StaticResource Hint}"/><ComboBox x:Name="FlashPicker" DisplayMemberPath="Name" SelectionChanged="Settings_Changed" Margin="0,4,0,8"/></StackPanel>
+           <StackPanel Grid.Column="2"><TextBlock Text="White balance" Style="{StaticResource Hint}"/><ComboBox x:Name="WhiteBalancePicker" DisplayMemberPath="Name" SelectionChanged="Settings_Changed" Margin="0,4,0,8"/></StackPanel>
+          </Grid>
+         </StackPanel>
+        </Expander>
+        <TextBlock Text="Lens model and equivalent mm also apply to video. Exposure and aperture fields apply to photos." Style="{StaticResource Hint}" Margin="0,0,0,10"/>
+        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="12"/><ColumnDefinition Width="130"/></Grid.ColumnDefinitions>
+         <StackPanel><DockPanel Margin="0,0,0,6"><TextBlock Text="Date &amp; time" FontWeight="SemiBold"/><CheckBox x:Name="KeepDate" Content="Keep original" FontSize="10" IsChecked="True" HorizontalAlignment="Right" Checked="DatePolicy_Changed" Unchecked="DatePolicy_Changed"/></DockPanel>
+          <TextBox x:Name="DateInput" TextChanged="Settings_Changed" ToolTip="yyyy-MM-dd HH:mm:ss"/>
+         </StackPanel>
+         <StackPanel Grid.Column="2"><TextBlock Text="UTC offset" Style="{StaticResource Label}"/><ComboBox x:Name="OffsetPicker" SelectionChanged="Settings_Changed"/></StackPanel>
+        </Grid>
+        <CheckBox x:Name="DateFallback" Content="Use export time if original date is missing" FontSize="12" Margin="0,8,0,0" Checked="Settings_Changed" Unchecked="Settings_Changed"/>
+        <Grid Margin="0,12,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+         <TextBlock Text="GPS location (optional)" Style="{StaticResource Label}"/>
+         <CheckBox Grid.Column="1" x:Name="GpsEnabled" Style="{StaticResource Switch}" Checked="Gps_Changed" Unchecked="Gps_Changed"/>
+        </Grid>
+        <Grid x:Name="GpsFields" Visibility="Collapsed" Margin="0,5,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+         <TextBox x:Name="Latitude" ToolTip="Latitude: -90 to 90" TextChanged="Settings_Changed"/>
+         <TextBox x:Name="Longitude" Grid.Column="2" ToolTip="Longitude: -180 to 180" TextChanged="Settings_Changed"/>
+        </Grid>
+        <TextBlock Text="Location is removed when GPS is off." Style="{StaticResource Hint}" Margin="0,5,0,0"/>
+        <Expander Header="More options" FontSize="12" Foreground="#567088" Margin="0,9,0,0">
+         <StackPanel Margin="0,8,0,0">
+          <CheckBox x:Name="PreserveFolders" Content="Preserve imported subfolders" Margin="0,0,0,8"/>
+          <CheckBox x:Name="DropExtraTracks" Content="Allow removal of auxiliary / subtitle / data tracks" Margin="0,0,0,7"/>
+          <TextBlock Text="Orientation, color profiles and required playback properties are preserved." Style="{StaticResource Hint}"/>
+         </StackPanel>
+        </Expander>
+       </StackPanel>
+      </Grid>
+     </ScrollViewer>
+    </DockPanel>
+   </Border>
+   <Border Grid.Column="2" BorderBrush="{StaticResource Line}" BorderThickness="1" CornerRadius="5">
+    <DockPanel>
+     <Border DockPanel.Dock="Top" Style="{StaticResource PanelHeading}"><StackPanel Orientation="Horizontal"><Path Data="M2,1 L14,1 19,6 19,22 2,22 Z M14,1 L14,6 19,6 M6,10 L15,10 M6,14 L15,14 M6,18 L12,18" Stroke="#183550" StrokeThickness="1.3" Width="19" Height="23" Stretch="Uniform" Margin="0,0,12,0"/><TextBlock Text="Metadata Preview" FontSize="18" FontWeight="SemiBold"/></StackPanel></Border>
+     <Grid Margin="15,8,15,4">
+      <Grid.RowDefinitions><RowDefinition Height="45"/><RowDefinition Height="22"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+      <StackPanel Orientation="Horizontal">
+       <Border Width="74" Height="43" Background="#E6EFF5" Margin="0,0,12,0"><Image x:Name="PreviewImage" Stretch="UniformToFill"/></Border>
+       <StackPanel VerticalAlignment="Center"><TextBlock x:Name="PreviewName" Text="Select a file to inspect" FontWeight="SemiBold"/><TextBlock x:Name="PreviewInfo" Text="Before and planned metadata" Style="{StaticResource Hint}" Margin="0,3,0,0"/></StackPanel>
+      </StackPanel>
+      <Grid Grid.Row="1"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+       <TextBlock Text="Before (original)" FontWeight="SemiBold" FontSize="13"/><TextBlock x:Name="AfterHeading" Grid.Column="2" Text="After (planned metadata)" Foreground="#008AA5" FontWeight="SemiBold" FontSize="13"/>
+      </Grid>
+      <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="38"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+       <ListView x:Name="BeforeList" BorderBrush="{StaticResource Line}" BorderThickness="1" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+        <ListView.ItemTemplate><DataTemplate><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="90"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="{Binding Label}" FontSize="11" Foreground="#47627A" TextWrapping="Wrap"/><TextBlock Grid.Column="1" Text="{Binding Value}" FontSize="11" TextWrapping="Wrap" ToolTip="{Binding Value}"/></Grid></DataTemplate></ListView.ItemTemplate>
+        <ListView.ItemContainerStyle><Style TargetType="ListViewItem"><Setter Property="Padding" Value="7,2"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/></Style></ListView.ItemContainerStyle>
+       </ListView>
+       <TextBlock Grid.Column="1" Text="→" FontSize="28" Foreground="#92A4B5" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+       <ListView Grid.Column="2" x:Name="AfterList" BorderBrush="{StaticResource Line}" BorderThickness="1" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+        ItemTemplate="{Binding ItemTemplate, ElementName=BeforeList}" ItemContainerStyle="{Binding ItemContainerStyle, ElementName=BeforeList}"/>
+      </Grid>
+      <TextBlock x:Name="PreviewNotice" Grid.Row="3" Text="Removes descriptive tags; rendering and playback properties remain." Style="{StaticResource Hint}" Margin="0,7,0,0" MaxHeight="42" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+     </Grid>
+    </DockPanel>
+   </Border>
+  </Grid>
+  <Border Grid.Row="5" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0" Background="#FAFCFE" Padding="22,13">
+   <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="190"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+    <Grid Margin="0,0,22,0"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+     <TextBlock Text="Output folder" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,15,0"/>
+     <TextBox x:Name="OutputFolder" Grid.Column="1" VerticalAlignment="Center" IsEnabled="{Binding IsIdle}" ToolTip="Choose where exported copies are saved"/>
+     <Button Grid.Column="2" Content="Browse…" Click="BrowseOutput_Click" VerticalAlignment="Center" Margin="12,0,0,0" IsEnabled="{Binding IsIdle}"/>
+    </Grid>
+    <StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="✓   Keep originals" FontWeight="SemiBold"/><TextBlock Text="Original files are preserved." Style="{StaticResource Hint}" Margin="23,5,0,0"/></StackPanel>
+    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+     <Button x:Name="CancelButton" Content="Cancel" Click="Cancel_Click" Visibility="{Binding IsBusy, Converter={StaticResource BoolVisibility}}" Margin="0,0,10,0"/>
+     <Button Style="{StaticResource Export}" MinWidth="205" Background="{StaticResource Teal}" BorderBrush="{StaticResource Teal}" Content="{Binding SelectedButtonText}" Click="ExportSelected_Click" IsEnabled="{Binding IsIdle}" Margin="0,0,13,0"/>
+     <Button Style="{StaticResource Export}" MinWidth="205" Content="{Binding AllButtonText}" Click="ExportAll_Click" IsEnabled="{Binding IsIdle}"/>
+    </StackPanel>
+   </Grid>
+  </Border>
+  <Border Grid.Row="6" Background="#F1F6FA" Padding="22,3">
+   <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="180"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+    <TextBlock Text="{Binding Summary}" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip="{Binding Summary}"/>
+    <ProgressBar Grid.Column="1" Value="{Binding Progress, Mode=OneWay}" Height="5" Background="#DEE7EE" Foreground="#008AA5" BorderThickness="0" VerticalAlignment="Center" Margin="15,0"/>
+    <Button Grid.Column="2" Content="Import report" Click="ImportReport_Click" FontSize="10" MinHeight="20" Padding="8,0" Background="Transparent" BorderThickness="0"/>
+    <Button Grid.Column="3" Content="Open output folder ↗" Click="OpenOutput_Click" FontSize="10" MinHeight="20" Padding="8,0" Background="Transparent" BorderThickness="0"/>
+   </Grid>
+  </Border>
+ </Grid>
+</Window>

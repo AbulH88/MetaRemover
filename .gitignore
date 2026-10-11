@@ -1,0 +1,15 @@
+.build/
+**/bin/
+**/obj/
+dist/
+tools/
+test-output/
+designs/
+docs/superpowers/
+docs/progress.md
+.vs/
+*.user
+*.suo
+*.log
+.env
+.env.*
