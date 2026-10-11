@@ -118,6 +118,8 @@ MetaRemover.exe --demo-folder absolute-folder --screenshot absolute-output.png
 
 ## Limits and licensing
 
+Windows Explorer may show blank camera fields for PNG files even when their EXIF metadata is present. Use MetaRemover's metadata preview or ExifTool to inspect these tags; blank Explorer fields do not prove removal.
+
 Required image/container/codec fields remain. Removal of every vendor-specific identifier inside media streams is not guaranteed. Unusual codecs and vendor HDR metadata are not exhaustively validated; preservation failures are rejected rather than silently transcoded.
 
 iPhone presets do not add authentic Apple MakerNotes, establish Apple capture provenance, or create Live Photos. MetaRemover is independent and not affiliated with Apple.

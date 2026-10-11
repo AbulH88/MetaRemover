@@ -1,5 +1,6 @@
 param([string]$ReleaseTag = 'v1.3.0')
 $ErrorActionPreference = 'Stop'
+$ProgressPreference = 'SilentlyContinue'
 $root = Split-Path $PSScriptRoot -Parent
 $destination = Join-Path $root 'tools'
 if ((Test-Path -LiteralPath (Join-Path $destination 'exiftool/ExifTool.exe')) -and
@@ -15,8 +16,8 @@ New-Item -ItemType Directory -Path $stage -Force | Out-Null
 $url = 'https://github.com/AbulH88/MetaRemover/releases/download/' + $ReleaseTag
 $zip = Join-Path $stage 'MetaRemover-Windows-x64.zip'
 $manifest = Join-Path $stage 'SHA256SUMS.txt'
-Invoke-WebRequest -Uri "$url/MetaRemover-Windows-x64.zip" -OutFile $zip
-Invoke-WebRequest -Uri "$url/SHA256SUMS.txt" -OutFile $manifest
+Invoke-WebRequest -UseBasicParsing -TimeoutSec 120 -Uri "$url/MetaRemover-Windows-x64.zip" -OutFile $zip
+Invoke-WebRequest -UseBasicParsing -TimeoutSec 120 -Uri "$url/SHA256SUMS.txt" -OutFile $manifest
 $line = Get-Content -LiteralPath $manifest | Where-Object { $_ -match '^([A-Fa-f0-9]{64})\s+\*?MetaRemover-Windows-x64\.zip$' } | Select-Object -First 1
 if (-not $line) { throw 'Portable archive checksum is missing from the release.' }
 $expected = ($line -split '\s+')[0]
